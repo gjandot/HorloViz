@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Horloge décimale">
+<meta name="author" content="Guillaume JANDOT">
+<title>horloViz</title>
+<style>
+#version a { font-size:0.8em; color:#777777; position:fixed; bottom:5px; right:9px; text-decoration:none; }
+
+#time { width:99px; font-size:1.1em; text-align:center; margin-bottom:15px;
+			background-color:#CCCCCC; border:1px solid black; border-radius:15px; }
+#date { font-size:1.3em; color: blue; margin:3px; }
+</style>
+</head>
+<body onload="start()">
+<script type="text/javascript">
+
+ const VERNUM = "0.001"; //G. JANDOT 24/07/2021
+
+ var ctx; //canvas
+ var viznum = 1;
+ const a360 = 2 * Math.PI;
+ const 	a90 = a360/4;
+ const  a36 = a360/10;
+ const  a30 = a360/12;
+ const   a6 = a360/60;
+ const   a3	= a360/100;
+ const REFRESH_MS = 100;
+ 
+ function elt(nom_obj)  { return document.getElementById(nom_obj); }
+ 
+//////////////////////////
+ 
+ function start()
+ {
+ 	canvas = elt('horlo');
+	ctx = canvas.getContext('2d');
+	elt("vernum").innerHTML = VERNUM;
+	setInterval(showtime, REFRESH_MS);
+ }
+ 
+ function clear_canvas()
+ {
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+ }
+ 
+ function drawAngle(x, y, r, angle)
+ {
+ 	ctx.beginPath();
+	ctx.moveTo(x, y);
+	ctx.arc(x, y, r, -a90, angle-a90);
+	ctx.lineTo(x, y);
+	ctx.fill();
+ }
+ 
+ function drawCircle(x, y, r)
+ {
+ 	ctx.beginPath();
+	ctx.arc(x, y, r, 0, a360);
+	ctx.stroke();
+ }
+ 
+ function drawLine(x1, y1, x2, y2)
+ {
+	ctx.beginPath();
+	ctx.moveTo(x1, y1);
+	ctx.lineTo(x2, y2);
+	ctx.stroke();
+ }
+ 
+ function viz()
+ {
+	viznum = elt("modeles").selectedIndex+1;
+ }
+ 
+ 
+ function norm(num)
+ //ajoute le 0 des dizaines si nécessaire
+ {
+	var ret = num;
+	if (num<=9)
+	{
+		ret = "0" + ret;
+	}
+	return ret;
+ }
+ 
+ function showtime()
+ {
+	var d = new Date();
+	var hh = d.getHours();	
+	var mm = d.getMinutes();
+	var ss = d.getSeconds();
+		
+	var sep = ".";
+	if (d.getSeconds()%2==0) { sep = ":"; }
+	elt("time").innerHTML = norm(hh) + ":" + norm(mm) + sep + norm(ss);
+	sep = ".";
+	if (ss%2==0) { sep = ":"; }
+
+	var h24 = false;
+	if (hh>=12)
+	{
+		hh = hh - 12;
+		h24 = true;
+	}
+	clear_canvas();
+	switch (viznum)
+	{
+		case 1:
+			ctx.fillStyle = "blue";
+			drawAngle(100, 100, 90, a30*hh);
+			if (h24)
+			{
+				ctx.strokeStyle = "white";
+				ctx.beginPath();		
+				ctx.lineWidth = 3;
+				ctx.arc(100, 100, 82, 0, a360, false);
+				ctx.stroke();
+				ctx.lineWidth = 1;
+				ctx.fillStyle = "blue";
+				drawAngle(100, 100, 81, a360);
+			}
+			ctx.fillStyle = "lightgrey";
+			drawAngle(100, 100, 70, a6*mm);
+			ctx.fillStyle = "red";
+			drawAngle(100, 100, 50, a6*ss);
+			ctx.strokeStyle = "white";
+			for (i=0; i<6; i++)
+			{
+				x = 100 + 100*Math.cos(i*a30-a90);
+				y = 100 + 100*Math.sin(i*a30-a90);
+				x2= 100 + 100*Math.cos(i*a30+Math.PI-a90);
+				y2= 100 + 100*Math.sin(i*a30+Math.PI-a90);
+				drawLine(x, y, x2, y2);
+			}
+		
+			break;
+		case 2:
+			ctx.fillStyle = "blue";
+			drawAngle(50, 100, 50, a30*hh);
+			ctx.strokeStyle = "white";
+			if (h24)
+			{
+				drawAngle(50, 100, 40, a360);
+				ctx.beginPath();		
+				ctx.arc(50, 100, 40, 0, a360, false);
+				ctx.stroke();
+			}				
+			ctx.fillStyle = "lightgrey";
+			drawAngle(150, 100, 50, a6*mm);
+			ctx.fillStyle = "red";
+			drawAngle(250, 100, 50, a6*ss);
+			ctx.strokeStyle = "grey";
+			for (j=0; j<3; j++)
+			{
+				for (i=0; i<6; i++)
+				{
+					x = 50+j*100 + 50*Math.cos(i*a30-a90);
+					y = 100 + 50*Math.sin(i*a30-a90);
+					x2= 50+j*100 + 50*Math.cos(i*a30+Math.PI-a90);
+					y2= 100 + 50*Math.sin(i*a30+Math.PI-a90);
+					drawLine(x, y, x2, y2);
+				}
+				drawCircle(50+j*100, 100, 50);
+			}
+			break;
+	}// (/switch)
+ }
+</script>
+<BR>
+<div id="time" title="heure"></div>
+
+<div>
+<select id="modeles" onchange="viz()">
+<option value="1">Modèle 1</option>
+<option value="2">Modèle 2</option>
+</select><!--modele-->
+</div>
+
+<canvas id="horlo" width="300" height="300"></canvas>
+
+<div id="version"><A HREF="https://github.com/gjandot/HorloViz">Version <span id="vernum">0.000</span></A></div>
+</body>
+</html>
