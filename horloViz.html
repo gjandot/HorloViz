@@ -16,7 +16,7 @@
 <body onload="start()">
 <script type="text/javascript">
 
- const VERNUM = "0.003"; //G. JANDOT 24/09/2021
+ const VERNUM = "0.004"; //G. JANDOT 15/02/2021
 
  var ctx; //canvas
  const DEF_VIZNUM = 1;
@@ -104,14 +104,31 @@
 	ctx.stroke();
  }
  
+ function drawRect(x1, y1, x2, y2)
+ {
+	drawLine(x1, y1, x1, y2);
+	drawLine(x1, y2, x2, y2);
+	drawLine(x2, y2, x2, y1);
+	drawLine(x2, y1, x1, y1);
+ }
  
+ function drawArea(x1, y1, x2, y2)
+ {
+ 	ctx.beginPath();
+	ctx.moveTo(x1, y1);
+	ctx.lineTo(x1, y2);
+	ctx.lineTo(x2, y2);
+	ctx.lineTo(x2, y1);
+	ctx.lineTo(x1, y1);
+	ctx.fill();
+ }
+ 
+
  function viz()
  {
-	console.log("ok");
 	viznum = elt("modeles").selectedIndex+1;
 	save_num();
  }
- 
  
  function norm(num)
  //ajoute le 0 des dizaines si nécessaire
@@ -148,6 +165,9 @@
 	clear_canvas();
 	switch (viznum)
 	{
+		///////////
+		//Disques I
+		///////////
 		case 1:
 			ctx.fillStyle = "blue";
 			drawAngle(100, 100, 90, a30*hh);
@@ -175,7 +195,10 @@
 			}
 			break;
 			
-		case 2:
+		////////////
+		//Disques II
+		////////////
+		case 2: 
 			ctx.fillStyle = "blue";
 			drawAngle(50, 100, 50, a30*hh);
 			ctx.strokeStyle = "white";
@@ -202,6 +225,10 @@
 				drawCircle(50+j*100, 100, 50);
 			}
 			break;
+		
+		///////////
+		// Slow 12
+		///////////
 		case 3:
 			ctx.strokeStyle = "black";
 			ctx.fillStyle = "black";
@@ -254,6 +281,10 @@
 			ctx.strokeStyle = "blue";
 			drawLine(center, center, x, y);
 			break;
+			
+		///////////
+		// Slow 24
+		///////////
 		case 4:
 			ctx.strokeStyle = "black";
 			ctx.fillStyle = "black";
@@ -306,6 +337,68 @@
 			ctx.strokeStyle = "blue";
 			drawLine(center, center, x, y);
 			break;
+		
+		//////////////
+		// Rectangles
+		//////////////
+		case 5: //Rectangles
+			ctx.font = C_FONT;
+			ctx.lineWidth = 3;
+			var step_x = 73;
+			var step_y = 50;
+			//HH
+			ctx.lineWidth = 1;	
+			ctx.fillStyle = "lightblue";
+			for (var c=0; c<hh; c++)
+			{	
+				var x = c%4;
+				var y = Math.floor(c/4);
+				//drawArea(x*60, y*50, x*60+19, y*50+24);
+				drawArea(x*step_x, y*step_y, x*step_x+23, y*step_y+24);
+			}		
+			//MM
+			ctx.fillStyle = "indianred";
+			for (var c=0; c<mm; c++)
+			{
+				var zone = Math.floor(c/5);
+				var xz = zone%4;
+				var yz = Math.floor(zone/4);
+				var pz = c%5+1;
+				x = pz%3;
+				y = Math.floor(pz/3);
+				//drawArea(xz*60+x*20, yz*50+y*25, xz*60+x*20+19, yz*50+y*25+24);
+				drawArea(xz*step_x+x*24, yz*step_y+y*25, xz*step_x+x*24+23, yz*step_y+y*25+24);
+			}
+			
+			//SS
+			ctx.strokeStyle = "blue";
+			for (var c=0; c<ss; c++)
+			{
+				var zone = Math.floor(c/5);
+				var xz = zone%4;
+				var yz = Math.floor(zone/4);
+				var pz = c%5+1;
+				x = pz%3;
+				y = Math.floor(pz/3);
+				//drawCircle(xz*60+x*20+9, yz*50+y*25+12, 3);
+				drawCircle(xz*step_x+x*24+12, yz*step_y+y*25+12, 3);
+			}
+			//drawRect(1,1,240,100);
+			//drawRect(1,1,240,150);
+			
+			// cadres et nombres
+			ctx.strokeStyle = "black";
+			ctx.fillStyle = "black";
+			for (var i=0; i<12; i++)
+			{
+					var x = i%4;
+					var y = Math.floor(i/4);
+					var offset = (i<9)?0:6;
+					ctx.fillText(i+1, 7+x*step_x-offset, 20+y*step_y);
+					drawRect(x*step_x, y*step_y, (x+1)*step_x, (y+1)*step_y);
+			}
+			break;
+
 	}// (/switch)
  }
 </script>
@@ -314,14 +407,14 @@
 
 <div>
 <select id="modeles" onchange="viz()">
-<option value="1">Disques I</option>
-<option value="2">Disques III</option>
-<option value="3">Slow 12 : aiguille unique 12 heures</option>
-<option value="4">Slow 24 : aiguille unique 24 heures</option>
-
+<option>Disques I</option><!--1-->
+<option>Disques III</option><!--2-->
+<option>Slow 12 : aiguille unique 12 heures</option><!--3-->
+<option>Slow 24 : aiguille unique 24 heures</option><!--4-->
+<option>Rectangles</option><!--5-->
 </select><!--modeles-->
 </div>
-
+<BR>&nbsp;<BR>
 <canvas id="horlo" width="300" height="300"></canvas>
 
 <div id="version"><A HREF="https://github.com/gjandot/HorloViz">Version <span id="vernum">0.000</span></A></div>
