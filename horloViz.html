@@ -12,50 +12,50 @@
 			background-color:#CCCCCC; border:1px solid black; border-radius:15px; }
 #date { font-size:1.3em; color: blue; margin:3px; }
 </style>
-</head>
-<body onload="start()">
+
+<noscript>L'application nécessite l'activation de Javascript.</noscript>
 <script type="text/javascript">
 
- const VERNUM = "0.004"; //G. JANDOT 15/02/2021
+ const VERNUM = "0.005"; //G. JANDOT 17/02/2022
 
  var ctx; //canvas
  const DEF_VIZNUM = 1;
  var viznum = DEF_VIZNUM;
  var vizchg = false;
  const a360 = 2*Math.PI;
+ const a180 = a360/2;
  const 	a90 = a360/4;
  const  a30 = a360/12;
  const  a15 = a360/24;
  const   a6 = a360/60;
  const REFRESH_MS = 100;
  const C_FONT = "18px serif";
- const COOKIE_NAME = "horloViz";
  
  function elt(nom_obj)  { return document.getElementById(nom_obj); }
  
 //////////////////////////
  
- function save_num() //cookie
+ function save_num()
  {
-	var expdate = new Date();
-    expdate.setTime(expdate.getTime() + (90*86400*1000)); //90 days
-	var expires = "expires=" + expdate.toUTCString();
-    document.cookie = COOKIE_NAME + "=" + viznum + "; " + expires + "; path=/;SameSite=Strict;";
+	if (typeof(Storage) !== "undefined")
+	{
+		localStorage.setItem('n', viznum);
+	}
  }
  
- function load_num() //cookie
+ function load_num()
  {
-    var nameEQ = COOKIE_NAME + "=";
-    var ca = document.cookie.split(';');
-    for (var i=0; i < ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0)==' ') c = c.substring(1,c.length);
-        if (c.indexOf(nameEQ) == 0)
+	var retval = DEF_VIZNUM;
+	
+	if (typeof(Storage) !== "undefined")
+	{
+		var tmpvar = localStorage.getItem('n');
+		if (tmpvar!=null)
 		{
-			return parseInt(c.substring(nameEQ.length, c.length),10);
+			retval = parseInt(tmpvar, 10);
 		}
-    }
-    return DEF_VIZNUM;
+	}
+	return retval;
  }
  
  function start()
@@ -92,7 +92,7 @@
  function drawCircle(x, y, r)
  {
  	ctx.beginPath();
-	ctx.arc(x, y, r, 0, a360, false);
+	ctx.arc(x, y, r, 0, a360);
 	ctx.stroke();
  }
  
@@ -121,6 +121,13 @@
 	ctx.lineTo(x2, y1);
 	ctx.lineTo(x1, y1);
 	ctx.fill();
+ }
+ 
+ function drawArc(cx, cy, r, a1, a2)
+ {
+  	ctx.beginPath();
+	ctx.arc(cx, cy, r, a1, a2);
+	ctx.stroke();
  }
  
 
@@ -169,31 +176,32 @@
 		//Disques I
 		///////////
 		case 1:
+			var center = 100;
 			ctx.fillStyle = "blue";
-			drawAngle(100, 100, 90, a30*hh);
+			drawAngle(center, center, 90, a30*hh);
 			if (h24)
 			{
 				ctx.strokeStyle = "white";
 				ctx.lineWidth = 3;
-				drawCircle(100, 100, 82);
+				drawCircle(center, center, 82);
 				ctx.lineWidth = 1;
 				ctx.fillStyle = "blue";
-				drawAngle(100, 100, 81, a360);
+				drawAngle(center, center, 81, a360);
 			}
 			ctx.fillStyle = "lightgrey";
-			drawAngle(100, 100, 70, a6*mm);
+			drawAngle(center, center, 70, a6*mm);
 			ctx.fillStyle = "red";
-			drawAngle(100, 100, 50, a6*ss);
+			drawAngle(center, center, 50, a6*ss);
 			ctx.strokeStyle = "white";
 			for (var i=0; i<6; i++)
 			{
-				x = 100 + 100*Math.cos(i*a30-a90);
-				y = 100 + 100*Math.sin(i*a30-a90);
-				x2= 100 + 100*Math.cos(i*a30+Math.PI-a90);
-				y2= 100 + 100*Math.sin(i*a30+Math.PI-a90);
+				x = center + center*Math.cos(i*a30-a90);
+				y = center + center*Math.sin(i*a30-a90);
+				x2= center + center*Math.cos(i*a30+a90);
+				y2= center + center*Math.sin(i*a30+a90);
 				drawLine(x, y, x2, y2);
 			}
-			break;
+		break;
 			
 		////////////
 		//Disques II
@@ -218,13 +226,13 @@
 				{
 					x = 50+j*100 + 50*Math.cos(i*a30-a90);
 					y = 100 + 50*Math.sin(i*a30-a90);
-					x2= 50+j*100 + 50*Math.cos(i*a30+Math.PI-a90);
-					y2= 100 + 50*Math.sin(i*a30+Math.PI-a90);
+					x2= 50+j*100 + 50*Math.cos(i*a30+a90);
+					y2= 100 + 50*Math.sin(i*a30+a90);
 					drawLine(x, y, x2, y2);
 				}
 				drawCircle(50+j*100, 100, 50);
 			}
-			break;
+		break;
 		
 		///////////
 		// Slow 12
@@ -259,18 +267,18 @@
 				}
 				else if (i%2==0)
 				{
-					x = 130 + 95*Math.cos(i*aa);
-					y = 130 + 95*Math.sin(i*aa);
-					x2= 130 + 85*Math.cos(i*aa);
-					y2= 130 + 85*Math.sin(i*aa);
+					x = center + 95*Math.cos(i*aa);
+					y = center + 95*Math.sin(i*aa);
+					x2= center + 85*Math.cos(i*aa);
+					y2= center + 85*Math.sin(i*aa);
 					drawLine(x, y, x2, y2);
 				}
 				else
 				{
-					x = 130 + 90*Math.cos(i*aa);
-					y = 130 + 90*Math.sin(i*aa);
-					x2= 130 + 85*Math.cos(i*aa);
-					y2= 130 + 85*Math.sin(i*aa);
+					x = center + 90*Math.cos(i*aa);
+					y = center + 90*Math.sin(i*aa);
+					x2= center + 85*Math.cos(i*aa);
+					y2= center + 85*Math.sin(i*aa);
 					drawLine(x, y, x2, y2);
 				}
 			}
@@ -280,7 +288,7 @@
 			y = center + 100*Math.sin(h*a30-a90);
 			ctx.strokeStyle = "blue";
 			drawLine(center, center, x, y);
-			break;
+		break;
 			
 		///////////
 		// Slow 24
@@ -315,18 +323,18 @@
 				}
 				else if (i%2==0)
 				{
-					x = 130 + 95*Math.cos(i*aa);
-					y = 130 + 95*Math.sin(i*aa);
-					x2= 130 + 85*Math.cos(i*aa);
-					y2= 130 + 85*Math.sin(i*aa);
+					x = center + 95*Math.cos(i*aa);
+					y = center + 95*Math.sin(i*aa);
+					x2= center + 85*Math.cos(i*aa);
+					y2= center + 85*Math.sin(i*aa);
 					drawLine(x, y, x2, y2);
 				}
 				else
 				{
-					x = 130 + 87*Math.cos(i*aa);
-					y = 130 + 87*Math.sin(i*aa);
-					x2= 130 + 85*Math.cos(i*aa);
-					y2= 130 + 85*Math.sin(i*aa);
+					x = center + 87*Math.cos(i*aa);
+					y = center + 87*Math.sin(i*aa);
+					x2= center + 85*Math.cos(i*aa);
+					y2= center + 85*Math.sin(i*aa);
 					drawLine(x, y, x2, y2);
 				}
 			}
@@ -336,12 +344,12 @@
 			y = center + 100*Math.sin(h*a15-a90);
 			ctx.strokeStyle = "blue";
 			drawLine(center, center, x, y);
-			break;
+		break;
 		
 		//////////////
 		// Rectangles
 		//////////////
-		case 5: //Rectangles
+		case 5:
 			ctx.font = C_FONT;
 			ctx.lineWidth = 3;
 			var step_x = 73;
@@ -349,11 +357,11 @@
 			//HH
 			ctx.lineWidth = 1;	
 			ctx.fillStyle = "lightblue";
-			for (var c=0; c<hh; c++)
+			var lh= (h==12)?h:hh;
+			for (var c=0; c<lh; c++)
 			{	
 				var x = c%4;
 				var y = Math.floor(c/4);
-				//drawArea(x*60, y*50, x*60+19, y*50+24);
 				drawArea(x*step_x, y*step_y, x*step_x+23, y*step_y+24);
 			}		
 			//MM
@@ -366,7 +374,6 @@
 				var pz = c%5+1;
 				x = pz%3;
 				y = Math.floor(pz/3);
-				//drawArea(xz*60+x*20, yz*50+y*25, xz*60+x*20+19, yz*50+y*25+24);
 				drawArea(xz*step_x+x*24, yz*step_y+y*25, xz*step_x+x*24+23, yz*step_y+y*25+24);
 			}
 			
@@ -380,11 +387,8 @@
 				var pz = c%5+1;
 				x = pz%3;
 				y = Math.floor(pz/3);
-				//drawCircle(xz*60+x*20+9, yz*50+y*25+12, 3);
 				drawCircle(xz*step_x+x*24+12, yz*step_y+y*25+12, 3);
 			}
-			//drawRect(1,1,240,100);
-			//drawRect(1,1,240,150);
 			
 			// cadres et nombres
 			ctx.strokeStyle = "black";
@@ -397,12 +401,13 @@
 					ctx.fillText(i+1, 7+x*step_x-offset, 20+y*step_y);
 					drawRect(x*step_x, y*step_y, (x+1)*step_x, (y+1)*step_y);
 			}
-			break;
+		break;
 
 	}// (/switch)
  }
 </script>
-<BR>
+</head>
+<body onload="start()">
 <div id="time" title="heure"></div>
 
 <div>
